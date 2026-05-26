@@ -1,4 +1,4 @@
-# 🚀 Low-Cost Secure LLM Infrastructure (FinOps-Driven)
+# Low-Cost Secure LLM Infrastructure (FinOps-Driven)
 
 [![Terraform](https://img.shields.io/badge/Terraform->=1.5.0-7B42BC?logo=terraform&logoColor=white)](https://www.terraform.io/)
 [![AWS](https://img.shields.io/badge/AWS-EC2%20%7C%20VPC%20%7C%20Security%20Group-FF9900?logo=amazon-aws&logoColor=white)](https://aws.amazon.com/)
@@ -41,7 +41,7 @@ Antes de desplegar, asegúrate de contar con las siguientes herramientas en tu e
 
 ---
 
-## 🚀 Guía de Despliegue Rápido
+## Guía de Despliegue Rápido
 
 ### 1. Clonar el repositorio y preparar variables
 Copia este repositorio en tu máquina local y crea tu archivo de configuración de variables `terraform.tfvars`:
