@@ -87,5 +87,6 @@ sleep 10
 
 echo "=== Descargando el modelo Gemma:2b automáticamente ==="
 docker exec -i ollama ollama run gemma:2b ""
-
+sleep 5
+docker exec -i ollama ollama run qwen2.5:0.5b ""
 echo "=== Configuración de User Data completada con éxito ==="
