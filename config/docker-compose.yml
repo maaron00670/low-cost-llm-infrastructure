@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  # 1. El Guardián (Proxy Inverso y Filtro de Seguridad)
+  reverse-proxy:
+    image: openresty/openresty:1.25.3.1-alpine # Usamos la versión estable basada en Alpine para que consuma mínima RAM (< 20MB)
+    container_name: llm_security_proxy
+    ports:
+      - "80:80" # Exponemos el puerto 80 al mundo exterior (mapeado en AWS)
+    volumes:
+      - ./nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf:ro # Inyectamos las reglas de login/cuotas
+    depends_on:
+      - open-webui
+    networks:
+      - llm_network
+    restart: unless-stopped
+
+  # 2. El Frontend (Interfaz de usuario y gestión de inicios de sesión)
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: llm_frontend
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434 # Apunta internamente a Ollama por la red de Docker
+      - WEBUI_AUTH=true # OBLIGATORIO: Activa el sistema de login y registro
+      - ENABLE_SIGNUP=true # Permite que los usuarios se registren para saltarse la restricción de anónimos
+      - DEFAULT_ROLE=user # Rol por defecto para nuevos registros
+    volumes:
+      - open-webui_data:/app/backend/data
+    depends_on:
+      - ollama
+    networks:
+      - llm_network
+    # NOTA DE SEGURIDAD: No exponemos puertos al "host". Nadie puede saltarse el proxy.
+    restart: unless-stopped
+
+  # 3. El Motor de IA (Aislado de internet)
+  ollama:
+    image: ollama/ollama:latest
+    container_name: llm_backend
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - llm_network
+    # Al arrancar, el contenedor descargará automáticamente el modelo Gemma 2B de forma interna
+    entrypoint: [ "/bin/sh", "-c", "ollama serve & sleep 5 && ollama run gemma:2b && tail -f /dev/null" ]
+    restart: unless-stopped
+
+networks:
+  llm_network:
+    driver: bridge
+
+volumes:
+  open-webui_data:
+  ollama_data:
