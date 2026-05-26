@@ -4,6 +4,7 @@
 [![AWS](https://img.shields.io/badge/AWS-EC2%20%7C%20VPC%20%7C%20Security%20Group-FF9900?logo=amazon-aws&logoColor=white)](https://aws.amazon.com/)
 [![Docker](https://img.shields.io/badge/Docker-Compose%20v2-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
 [![Ollama](https://img.shields.io/badge/Ollama-Gemma:2b-black?logo=ollama&logoColor=white)](https://ollama.com/)
+[![Ollama](https://img.shields.io/badge/Ollama-qwen2.5:0.5b-black?logo=ollama&logoColor=white)](https://ollama.com/)
 
 Infraestructura Cloud automatizada mediante código (**IaC**) para el despliegue de un entorno privado de Inteligencia Artificial utilizando **Gemma (Google)**. El diseño está completamente optimizado bajo la filosofía **FinOps**, permitiendo ejecutar modelos de lenguaje (LLM) en instancias de recursos muy limitados y de bajo coste (o dentro de la capa gratuita) en AWS sin comprometer la seguridad.
 
