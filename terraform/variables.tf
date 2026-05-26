@@ -46,3 +46,13 @@ variable "public_key_content" {
   type        = string
   description = "El contenido de tu clave pública SSH (normalmente lo que hay dentro de ~/.ssh/id_rsa.pub)."
 }
+
+variable "aws_access_key" {
+  type        = string
+  description = "Access Key de AWS"
+}
+
+variable "aws_secret_key" {
+  type        = string
+  description = "Secret Key de AWS"
+}
