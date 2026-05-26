@@ -7,7 +7,7 @@ output "server_public_ip" {
 # Comando SSH listo para usar
 output "ssh_command" {
   description = "Comando de terminal listo para copiar y pegar para acceder al servidor por SSH."
-  value       = "ssh -i ~/.ssh/id_rsa ubuntu@${aws_instance.llm_server.public_ip}"
+  value       = "ssh -i ./llm-key.pem ubuntu@${aws_instance.llm_server.public_ip}"
 }
 
 # ID de la VPC 

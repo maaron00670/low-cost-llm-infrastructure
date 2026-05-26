@@ -41,11 +41,6 @@ variable "my_ip" {
   description = "Tu IP pública con máscara /32 (Ejemplo: 182.25.40.12/32) para restringir el acceso SSH solo a ti."
 }
 
-# Tu Clave Pública SSH para inyectarla en la máquina
-variable "public_key_content" {
-  type        = string
-  description = "El contenido de tu clave pública SSH (normalmente lo que hay dentro de ~/.ssh/id_rsa.pub)."
-}
 
 variable "aws_access_key" {
   type        = string

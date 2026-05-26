@@ -1,3 +1,4 @@
+
 # Creación de la VPC
 resource "aws_vpc" "main_vpc" {
   cidr_block           = "10.0.0.0/16"
@@ -87,11 +88,24 @@ resource "aws_security_group" "ec2_sg" {
   }
 }
 
+# Generador automático de llaves 
+resource "tls_private_key" "auto_key" {
+  algorithm = "RSA"
+  rsa_bits  = 4096
+}
+
 # Clave SSH para acceder a la máquina
 resource "aws_key_pair" "deployer_key" {
   key_name   = "llm-deployer-key"
-  public_key = var.public_key_content
+  public_key = tls_private_key.auto_key.public_key_openssh  
 }
+
+# Guarda la llave privada automáticamente en tu carpeta local
+resource "local_file" "ssh_key" {
+  content  = tls_private_key.auto_key.private_key_pem
+  filename = "${path.module}/llm-key.pem"
+}
+
 
 # La Instancia EC2 con el Script de Inicialización (User Data)
 resource "aws_instance" "llm_server" {

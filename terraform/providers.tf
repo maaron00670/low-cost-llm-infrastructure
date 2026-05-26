@@ -12,9 +12,10 @@ terraform {
 
 # Configuración del proveedor de AWS
 provider "aws" {
-  region = var.aws_region
+  region     = var.aws_region
+  access_key = var.aws_access_key
+  secret_key = var.aws_secret_key
 
-  # Tags globales para FinOps y organización
   default_tags {
     tags = {
       Environment = "Dev"
