@@ -82,11 +82,13 @@ EOF
 echo "=== Levantando el stack de IA sin intervención ==="
 docker compose up -d
 
-echo "=== Esperando 10 segundos a que Ollama inicie correctamente ==="
-sleep 10
+echo "=== Esperando 15 segundos a que el motor de Ollama inicie ==="
+sleep 15
 
-echo "=== Descargando el modelo Gemma:2b automáticamente ==="
-docker exec -i ollama ollama run gemma:2b ""
-sleep 5
+echo "=== Descargando el modelo rápido Qwen2.5 (0.5B) ==="
 docker exec -i ollama ollama run qwen2.5:0.5b ""
+
+echo "=== Descargando el modelo pesado Gemma (2B) ==="
+docker exec -i ollama ollama run gemma:2b ""
+
 echo "=== Configuración de User Data completada con éxito ==="
