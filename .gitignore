@@ -1,0 +1,19 @@
+# === Ignorar credenciales de Terraform ===
+*.tfvars
+*.tfvars.json
+terraform.tfvars
+
+# === Ignorar archivos de estado de Terraform (Contienen datos sensibles) ===
+*.tfstate
+*.tfstate.backup
+.terraform/
+.terraform.lock.hcl
+
+# === Ignorar las llaves privadas SSH generadas ===
+*.pem
+*.pub
+llm-key.pem
+
+# === Ignorar logs y temporales ===
+*.log
+.DS_Store

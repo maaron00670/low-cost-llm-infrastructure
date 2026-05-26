@@ -1,17 +1,25 @@
-# Dirección IP Pública de la instancia
-output "server_public_ip" {
-  description = "La dirección IP pública del servidor para ver la web."
-  value       = aws_instance.llm_server.public_ip
+# Configuración de los requerimientos de Terraform
+terraform {
+  required_version = ">= 1.5.0"
+
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+  }
 }
 
-# Comando SSH listo para usar
-output "ssh_command" {
-  description = "Comando de terminal listo para copiar y pegar para acceder al servidor por SSH."
-  value       = "ssh -i ~/.ssh/id_rsa ubuntu@${aws_instance.llm_server.public_ip}"
-}
+# Configuración del proveedor de AWS
+provider "aws" {
+  region = var.aws_region
 
-# ID de la VPC
-output "vpc_id" {
-  description = "El ID de la VPC dedicada que se ha creado para este proyecto."
-  value       = aws_vpc.main_vpc.id
+  # Tags globales para FinOps y organización
+  default_tags {
+    tags = {
+      Environment = "Dev"
+      Project     = "Low-Cost-Secure-LLM"
+      ManagedBy   = "Terraform"
+    }
+  }
 }

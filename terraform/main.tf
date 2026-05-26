@@ -95,7 +95,7 @@ resource "aws_key_pair" "deployer_key" {
 
 # La Instancia EC2 con el Script de Inicialización (User Data)
 resource "aws_instance" "llm_server" {
-  ami                    = var.ami_id
+  ami                    = data.aws_ami.ubuntu.id
   instance_type          = var.instance_type # t2.micro es gratuita por un año
   subnet_id              = aws_subnet.public_subnet.id
   vpc_security_group_ids = [aws_security_group.ec2_sg.id]
