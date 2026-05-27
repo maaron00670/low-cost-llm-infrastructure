@@ -35,11 +35,6 @@ data "aws_ami" "ubuntu" {
   }
 }
 
-# Tu IP Pública para proteger el acceso SSH
-variable "my_ip" {
-  type        = string
-  description = "Tu IP pública con máscara /32 (Ejemplo: 182.25.40.12/32) para restringir el acceso SSH solo a ti."
-}
 
 
 variable "aws_access_key" {

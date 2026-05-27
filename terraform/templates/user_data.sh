@@ -85,10 +85,10 @@ docker compose up -d
 echo "=== Esperando 15 segundos a que el motor de Ollama inicie ==="
 sleep 15
 
-echo "=== Descargando el modelo rápido Qwen2.5 (0.5B) ==="
-docker exec -i ollama ollama run qwen2.5:0.5b ""
+# echo "=== Descargando el modelo rápido Qwen2.5 (0.5B) ==="
+# docker exec -i ollama ollama run qwen2.5:0.5b ""
 
-echo "=== Descargando el modelo pesado Gemma (2B) ==="
-docker exec -i ollama ollama run gemma:2b ""
+# echo "=== Descargando el modelo pesado Gemma (2B) ==="
+# docker exec -i ollama ollama run gemma:2b ""
 
 echo "=== Configuración de User Data completada con éxito ==="

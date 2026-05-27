@@ -1,4 +1,3 @@
-
 # Creación de la VPC
 resource "aws_vpc" "main_vpc" {
   cidr_block           = "10.0.0.0/16"
@@ -45,37 +44,28 @@ resource "aws_route_table" "public_rt" {
   }
 }
 
-# Asocación de la tabla de enrutamiento con la subred
+# Asociación de la tabla de enrutamiento con la subred
 resource "aws_route_table_association" "public_assoc" {
   subnet_id      = aws_subnet.public_subnet.id
   route_table_id = aws_route_table.public_rt.id
 }
 
-# Grupo de Seguridad (Firewall)
+# Grupo de Seguridad (Firewall) - ¡PUERTO 22 ELIMINADO!
 resource "aws_security_group" "ec2_sg" {
   name        = "llm-security-group"
-  description = "Reglas de acceso para el proxy de seguridad y SSH"
+  description = "Reglas de acceso exclusivas para el proxy de seguridad web"
   vpc_id      = aws_vpc.main_vpc.id
 
-  # Permitir tráfico web (Nginx) desde cualquier lugar
+  # Permitir tráfico web (Open WebUI) desde cualquier lugar
   ingress {
-    description = "Acceso HTTP al Proxy Inverso"
+    description = "Acceso HTTP público"
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["0.0.0.0/0"] 
   }
 
-  # Seguridad SSH 
-  ingress {
-    description = "Acceso SSH Seguro"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = [var.my_ip] # Filtrado por tu IP pública para evitar ataques por fuerza bruta
-  }
-
-  # Permitir que la máquina descargue paquetes, Docker images, modelos, etc.
+  # Permitir salida a internet para descargar paquetes, Docker images, modelos, etc.
   egress {
     from_port   = 0
     to_port     = 0
@@ -88,41 +78,57 @@ resource "aws_security_group" "ec2_sg" {
   }
 }
 
-# Generador automático de llaves 
-resource "tls_private_key" "auto_key" {
-  algorithm = "RSA"
-  rsa_bits  = 4096
+# =========================================================================
+# Rol de IAM (Service Account) para el acceso seguro vía AWS SSM
+# =========================================================================
+resource "aws_iam_role" "ec2_ssm_role" {
+  name = "llm-ec2-ssm-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        }
+      }
+    ]
+  })
 }
 
-# Clave SSH para acceder a la máquina
-resource "aws_key_pair" "deployer_key" {
-  key_name   = "llm-deployer-key"
-  public_key = tls_private_key.auto_key.public_key_openssh  
+# Adjuntamos la política gestionada oficial de AWS para Systems Manager Core
+resource "aws_iam_role_policy_attachment" "ssm_attach" {
+  role       = aws_iam_role.ec2_ssm_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
-# Guarda la llave privada automáticamente en tu carpeta local
-resource "local_file" "ssh_key" {
-  content  = tls_private_key.auto_key.private_key_pem
-  filename = "${path.module}/llm-key.pem"
+# Creamos el perfil de instancia que necesita la EC2 para cargar el rol
+resource "aws_iam_instance_profile" "ec2_profile" {
+  name = "llm-ec2-instance-profile"
+  role = aws_iam_role.ec2_ssm_role.name
 }
 
 
-# La Instancia EC2 con el Script de Inicialización (User Data)
+# La Instancia EC2 con el Service Account (User Data)
 resource "aws_instance" "llm_server" {
   ami                    = data.aws_ami.ubuntu.id
-  instance_type          = var.instance_type # t2.micro es gratuita por un año
+  instance_type          = var.instance_type 
   subnet_id              = aws_subnet.public_subnet.id
   vpc_security_group_ids = [aws_security_group.ec2_sg.id]
-  key_name               = aws_key_pair.deployer_key.key_name
+  
+  # MODIFICADO: Quitamos key_name y añadimos el Perfil de IAM con SSM
+  iam_instance_profile   = aws_iam_instance_profile.ec2_profile.name
 
-  # Almacenamiento: Le damos 30 GB (el máximo de la capa gratuita) para que quepa el SO, Docker y el Swap
+  # Almacenamiento: Le damos 30 GB para que quepa el SO, Docker y el Swap
   root_block_device {
     volume_size           = 30
     volume_type           = "gp3"
     delete_on_termination = true
   }
 
-  # El script mágico que configurará el SWAP, instalará Docker y levantará todo
+  # El script configurará el SWAP, instalará Docker y levantará todo
   user_data = file("${path.module}/templates/user_data.sh")
 
   tags = {
