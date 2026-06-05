@@ -2,6 +2,7 @@
 *.tfvars
 *.tfvars.json
 terraform.tfvars
+algo.txt
 
 # === Ignorar archivos de estado de Terraform (Contienen datos sensibles) ===
 *.tfstate
@@ -17,3 +18,4 @@ llm-key.pem
 # === Ignorar logs y temporales ===
 *.log
 .DS_Store
+
