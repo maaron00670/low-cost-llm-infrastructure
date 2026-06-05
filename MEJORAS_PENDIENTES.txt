@@ -1,0 +1,84 @@
+# Puntos a mejorar / cosas a arreglar (pendientes)
+
+> Nota: este documento resume oportunidades de mejora detectadas en el repositorio.
+> (El punto del typo en `nginx.conf` ya fue corregido y **no** se incluye aquí.)
+
+## 1) Inconsistencia entre `user_data.sh` y `config/*` (proxy vs despliegue real)
+Actualmente hay dos “formas” de desplegar:
+
+- `terraform/templates/user_data.sh` genera su propio `docker-compose.yml` y expone `open-webui` directamente en `80:8080`.
+- `config/docker-compose.yml` + `config/nginx.conf` describen un enfoque más “seguro” con reverse proxy (OpenResty) + Open WebUI sin puertos expuestos directamente.
+
+**Riesgo / impacto:**
+- El diseño de seguridad y control de acceso descrito por `config/*` no se está aplicando si el despliegue depende únicamente de `user_data.sh`.
+- El README puede dar una impresión de seguridad/arquitectura que no coincide con lo que se aprovisiona.
+
+**Acciones recomendadas:**
+- Elegir un único enfoque como “fuente de verdad”.
+  - O bien simplificar el repo y eliminar `config/*` si no se usará.
+  - O bien actualizar `user_data.sh` para copiar/usar `config/docker-compose.yml` y `config/nginx.conf` en el servidor, y levantar el stack “seguro” por defecto.
+
+## 2) Seguridad de red: puerto 80 público sin TLS (HTTP)
+En `terraform/main.tf`, el Security Group permite `ingress` a `80/tcp` desde `0.0.0.0/0`.
+
+**Riesgo / impacto:**
+- Credenciales/cookies y tráfico de sesión viajan sin cifrado si se usa solo HTTP.
+
+**Acciones recomendadas (opciones):**
+- Colocar un ALB con HTTPS (ACM) y exponer solo 443.
+- O implementar TLS directamente en el reverse proxy y abrir 443 (además de 80 si se quiere redirección).
+
+## 3) Terraform: credenciales AWS como variables en el provider
+En `terraform/providers.tf` se configuran `access_key` y `secret_key` desde variables.
+
+**Riesgo / impacto:**
+- Incentiva almacenar secretos en `terraform.tfvars` (aunque esté en `.gitignore`) y hace más difícil usar prácticas estándar (perfiles, credenciales temporales, OIDC en CI, etc.).
+
+**Acciones recomendadas:**
+- Eliminar `access_key` y `secret_key` del bloque `provider "aws"` y usar el mecanismo estándar del AWS SDK:
+  - `AWS_PROFILE`, `~/.aws/credentials`, variables de entorno (`AWS_ACCESS_KEY_ID`, etc.), o roles/OIDC.
+
+## 4) Reproducibilidad: tags `latest` / `main` en imágenes Docker
+Se usan tags no deterministas:
+- `ollama/ollama:latest`
+- `ghcr.io/open-webui/open-webui:main`
+
+**Riesgo / impacto:**
+- Un cambio upstream puede romper el despliegue o cambiar comportamiento sin avisar.
+
+**Acciones recomendadas:**
+- Pinnear versiones concretas (tags estables) o digest SHA256.
+
+## 5) `user_data.sh`: `apt-get upgrade -y` en el arranque
+El script hace `apt-get update -y` y `apt-get upgrade -y` al inicio.
+
+**Riesgo / impacto:**
+- Puede alargar provisionado, introducir cambios no controlados o fallar en ciertos escenarios (locks, reinicios pendientes, etc.).
+
+**Acciones recomendadas:**
+- Considerar reducirlo a instalación de dependencias necesarias (o hacerlo opcional).
+- Endurecer el script con buenas prácticas (ej. `set -euo pipefail`, manejo de errores) para que falle de forma clara.
+
+## 6) Terraform: nombres fijos para IAM Role / Instance Profile (posibles colisiones)
+Se usan nombres estáticos:
+- `llm-ec2-ssm-role`
+- `llm-ec2-instance-profile`
+
+**Riesgo / impacto:**
+- Colisiones si se despliega múltiples veces en la misma cuenta/región o con varios entornos.
+
+**Acciones recomendadas:**
+- Usar `name_prefix` o añadir sufijos únicos (por ejemplo con `random_id`) y/o parametrizar por entorno.
+
+## 7) Documentación vs implementación (alineación)
+El README menciona ciertos comportamientos/arquitectura que pueden no coincidir con el despliegue real (por ejemplo, diferencias entre enfoque con proxy y el compose generado por `user_data.sh`, o detalles de acceso).
+
+**Acciones recomendadas:**
+- Revisar y alinear el README con el “camino feliz” real del despliegue actual.
+
+---
+
+### Sugerencia de próximos pasos (cuando termines la prueba del main)
+1. Definir el enfoque por defecto (simple vs “seguro con proxy”).
+2. Ajustar `user_data.sh` + `terraform/main.tf` + README para que todos cuenten la misma historia.
+3. Pinnear versiones de imágenes y mejorar reproducibilidad.
