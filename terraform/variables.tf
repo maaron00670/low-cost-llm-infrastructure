@@ -9,7 +9,7 @@ variable "aws_region" {
 variable "aws_zone" {
   type        = string
   description = "Zona de disponibilidad específica dentro de la región."
-  default     = "eu-west-3a"
+  default     = "eu-west-3"
 }
 
 # Tipo de Instancia (Capa Gratuita de AWS)
