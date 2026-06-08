@@ -2,14 +2,14 @@
 variable "aws_region" {
   type        = string
   description = "Región de AWS donde se crearán los recursos."
-  default     = "eu-west-3" 
+  default     = "eu-south-2" 
 }
 
 # Zona de disponibilidad 
 variable "aws_zone" {
   type        = string
   description = "Zona de disponibilidad específica dentro de la región."
-  default     = "eu-west-3a"
+  default     = "eu-south-2a"
 }
 
 # Tipo de Instancia (Capa Gratuita de AWS)
