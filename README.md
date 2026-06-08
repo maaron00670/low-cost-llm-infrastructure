@@ -49,7 +49,7 @@ Copia este repositorio en tu máquina local y crea tu archivo de configuración 
 ```hcl
 aws_access_key = "TU_AWS_ACCESS_KEY"
 aws_secret_key = "TU_AWS_SECRET_KEY"
-aws_region     = "eu-south-2"               # Región opcional
+aws_region     = "eu-west-3a"               # Región opcional
 instance_type  = "t3.micro"                # Instancia FinOps
 
 ```
